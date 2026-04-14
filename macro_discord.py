@@ -3,17 +3,21 @@ import time
 import sys
 
 # НАСТРОЙКИ
-# Текст, который нужно отправить. Слова будут разделены переносом строки.
-MESSAGE_TEXT = "привет как дела надеюсь у тебя все хорошо"
-# Задержка между нажатиями клавиш (в секундах). Не ставьте 0, чтобы не забанили за спам.
-TYPING_DELAY = 1.5 
-# Задержка перед началом (чтобы успеть переключиться на окно Discord)
-START_DELAY = 5
+# -----------------------------------------------------------------------------
+# ВНИМАНИЕ: Используйте тройные кавычки для многострочного текста.
+# Каждая новая строка будет отправлена как ОТДЕЛЬНОЕ сообщение.
+MESSAGE_TEXT = """привет
+как дела
+что делаешь
+бибабоба"""
 
-# Координаты кнопки звонка (ОЧЕНЬ ВАЖНО: их нужно узнать заранее)
-# Если координаты (0, 0), скрипт пропустит шаг со звонком и просто напишет сообщения.
-CALL_BUTTON_X = 0 
-CALL_BUTTON_Y = 0
+CALL_BUTTON_X = 0  # Сюда вставить X координату кнопки звонка (замерить через --coords)
+CALL_BUTTON_Y = 0  # Сюда вставить Y координату кнопки звонка
+
+PAUSE_BETWEEN_MESSAGES = 2.0  # Пауза между сообщениями (сек). Не ставьте меньше 1.5!
+TYPING_SPEED = 0.05           # Скорость печати букв (сек)
+START_DELAY = 5               # Время до старта, чтобы успеть переключиться
+# -----------------------------------------------------------------------------
 
 def get_coordinates():
     """Функция для получения координат мыши. Запустите скрипт с аргументом --coords чтобы использовать её."""
@@ -28,17 +32,22 @@ def get_coordinates():
     except KeyboardInterrupt:
         print("\nОтменено.")
 
-def type_message_word_by_word(text):
-    words = text.split()
-    print(f"Начинаю отправку {len(words)} сообщений...")
+def type_message_line_by_line(text):
+    # Разбиваем текст на строки
+    lines = text.strip().split('\n')
+    print(f"Начинаю отправку {len(lines)} сообщений...")
     
     # Небольшая пауза перед стартом, чтобы убедиться, что фокус на поле ввода
     time.sleep(1)
     
-    for word in words:
-        pyautogui.write(word)
+    for line in lines:
+        line = line.strip()
+        if not line:
+            continue
+            
+        pyautogui.write(line, interval=TYPING_SPEED)
         pyautogui.press('enter')
-        time.sleep(TYPING_DELAY) # Пауза между сообщениями
+        time.sleep(PAUSE_BETWEEN_MESSAGES) # Пауза между сообщениями
 
 def make_call(x, y):
     if x == 0 and y == 0:
@@ -63,9 +72,10 @@ def main():
         return
 
     print("--- Discord Макрос ---")
-    print(f"Текст: {MESSAGE_TEXT}")
-    print(f"Задержка между словами: {TYPING_DELAY} сек")
-    print(f"До старта осталось {START_DELAY} сек. Быстро переключитесь на окно Discord и кликните в поле ввода!")
+    print(f"Текст (по строкам): {MESSAGE_TEXT}")
+    print(f"Пауза между сообщениями: {PAUSE_BETWEEN_MESSAGES} сек")
+    print(f"До старта осталось {START_DELAY} сек. Быстро переключитесь на окно Discord!")
+    print("ВАЖНО: Не трогайте мышь и клавиатуру во время работы скрипта.")
     
     # Обратный отсчет
     for i in range(START_DELAY, 0, -1):
@@ -74,7 +84,7 @@ def main():
     print("\nПоехали!")
 
     # 1. Отправка сообщений
-    type_message_word_by_word(MESSAGE_TEXT)
+    type_message_line_by_line(MESSAGE_TEXT)
     
     print("Сообщения отправлены.")
     
